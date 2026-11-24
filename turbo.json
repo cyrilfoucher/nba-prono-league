@@ -1,7 +1,7 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
   "ui": "tui",
-  "globalEnv": ["DATABASE_URL", "DIRECT_URL", "NODE_ENV"],
+  "globalEnv": ["BALLDONTLIE_API_KEY", "CRON_SECRET", "DATABASE_URL", "DIRECT_URL", "NODE_ENV"],
   "tasks": {
     "db:generate": {
       "inputs": ["prisma/schema.prisma", "prisma.config.ts"],

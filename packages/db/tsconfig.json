@@ -1,0 +1,10 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    // db tourne sur le serveur : pas de types du navigateur, types de Node à la place.
+    "lib": ["es2022"],
+    "types": ["node"]
+  },
+  "include": ["src", "prisma.config.ts"],
+  "exclude": ["node_modules"]
+}

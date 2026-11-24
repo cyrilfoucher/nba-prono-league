@@ -1,0 +1,37 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum GameStatus {
+  scheduled
+  in_progress
+  final
+  postponed
+  canceled
+}
+
+model Team {
+  id           Int    @id
+  name         String
+  abbreviation String
+  homeGames    Game[] @relation("HomeTeam")
+  visitorGames Game[] @relation("VisitorTeam")
+}
+
+model Game {
+  id            Int        @id
+  startsAt      DateTime   @db.Timestamptz(3)
+  status        GameStatus
+  homeTeamId    Int
+  homeTeam      Team       @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  visitorTeamId Int
+  visitorTeam   Team       @relation("VisitorTeam", fields: [visitorTeamId], references: [id])
+  homeScore     Int?
+  visitorScore  Int?
+}

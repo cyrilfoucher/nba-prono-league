@@ -165,3 +165,6 @@ vite.config.ts.timestamp-*
 # Claude Code (réglages personnels)
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Client Prisma généré par `prisma generate`
+packages/db/src/generated/

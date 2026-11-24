@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ZodError } from "zod";
-import { fetchGamesByDate } from "./client.js";
-import { gamesResponseSchema } from "./schemas.js";
-import { toGame } from "./to-game.js";
+import { fetchGamesByDate } from "./client";
+import { gamesResponseSchema } from "./schemas";
+import { toGame } from "./to-game";
 
 const rawFixture = readFileSync(
   new URL("./fixtures/games-2026-11-22.json", import.meta.url),

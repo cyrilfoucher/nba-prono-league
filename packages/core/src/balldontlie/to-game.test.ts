@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { gamesResponseSchema, type BallDontLieGame } from "./schemas.js";
-import { toGame } from "./to-game.js";
+import { gamesResponseSchema, type BallDontLieGame } from "./schemas";
+import { toGame } from "./to-game";
 
 const fixture = gamesResponseSchema.parse(
   JSON.parse(readFileSync(new URL("./fixtures/games-2026-11-22.json", import.meta.url), "utf8")),

@@ -1,5 +1,5 @@
-import type { Game, GameStatus, Team } from "../games/types.js";
-import type { BallDontLieGame } from "./schemas.js";
+import type { Game, GameStatus, Team } from "../games/types";
+import type { BallDontLieGame } from "./schemas";
 
 function toGameStatus(state: BallDontLieGame["status_state"]): GameStatus {
   switch (state) {

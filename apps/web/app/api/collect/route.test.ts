@@ -4,7 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "./route";
 
-vi.mock("@repo/core", () => ({ fetchGamesByDate: vi.fn() }));
+// Seul l'appel à l'API est simulé : isValidDate garde sa vraie implémentation.
+vi.mock("@repo/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@repo/core")>()),
+  fetchGamesByDate: vi.fn(),
+}));
 // La fabrique remplace tout le module : le vrai client Prisma n'est jamais chargé.
 vi.mock("@repo/db", () => ({ prisma: { fake: "prisma" }, saveGames: vi.fn() }));
 

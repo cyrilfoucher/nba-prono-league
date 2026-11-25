@@ -11,6 +11,7 @@
     "test": "turbo run test",
     "db:generate": "turbo run db:generate",
     "db:migrate": "turbo run db:migrate",
+    "db:deploy": "turbo run db:deploy",
     "prepare": "husky"
   },
   "devDependencies": {

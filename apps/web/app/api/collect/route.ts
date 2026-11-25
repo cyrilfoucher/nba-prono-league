@@ -1,9 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
-import { fetchGamesByDate, type Game } from "@repo/core";
+import { fetchGamesByDate, isValidDate, type Game } from "@repo/core";
 import { prisma, saveGames } from "@repo/db";
-
-const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 function readEnv(name: string): string | null {
   const value = process.env[name];
@@ -22,15 +20,6 @@ function isAuthorized(request: Request, secret: string): boolean {
   const received = createHash("sha256").update(header).digest();
   const expected = createHash("sha256").update(`Bearer ${secret}`).digest();
   return timingSafeEqual(received, expected);
-}
-
-function isValidDate(value: string): boolean {
-  if (!DATE_PATTERN.test(value)) {
-    return false;
-  }
-  const parsed = new Date(`${value}T00:00:00Z`);
-  // Une date inexistante (2026-02-31) est décalée au mois suivant par Date.
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
 // Le calendrier NBA est daté à l'heure de New York.

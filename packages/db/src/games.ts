@@ -1,4 +1,4 @@
-import type { Game, Team } from "@repo/core";
+import { getParisDayRange, type Game, type Team } from "@repo/core";
 
 import type { PrismaClient } from "./generated/prisma/client";
 
@@ -39,4 +39,13 @@ export async function saveGames(db: PrismaClient, games: Game[]): Promise<number
   }
 
   return games.length;
+}
+
+export async function getGamesOfDay(db: PrismaClient, date: string): Promise<Game[]> {
+  const { start, end } = getParisDayRange(date);
+  return db.game.findMany({
+    where: { startsAt: { gte: start, lt: end } },
+    include: { homeTeam: true, visitorTeam: true },
+    orderBy: { startsAt: "asc" },
+  });
 }

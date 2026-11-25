@@ -1,0 +1,11 @@
+.container {
+  display: block;
+  width: var(--ball-size);
+  height: var(--ball-size);
+}
+
+.container > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

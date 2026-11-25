@@ -1,24 +1,89 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Couleurs : thème clair */
+  --color-background: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-text: #15171c;
+  --color-text-muted: #596070;
+  --color-text-faded: #6b7280;
+  --color-border: #d9dce3;
+  --color-accent: #f97316;
+  --color-accent-gradient: linear-gradient(135deg, #fb923c 0%, #f97316 55%, #ea580c 100%);
+  --color-on-accent: #1a0c00;
+  --color-accent-text: #c2410c;
+  --color-live: #dc2626;
+  --color-focus: #2563eb;
+  --color-team-fallback: #6b7280;
+  --color-header-background: rgb(10 10 12 / 72%);
+  --color-header-text: #ffffff;
+  --color-menu-background: #0a0a0c;
+  --color-menu-text: #f5f5f5;
+  --color-menu-text-muted: #9ca3af;
+  --color-menu-item-hover: rgb(255 255 255 / 8%);
+
+  /* Typographie */
+  --font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Espacements */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  /* Rayons */
+  --radius-md: 0.75rem;
+  --radius-full: 999px;
+
+  /* Tailles */
+  --header-height: 4rem;
+  --header-edge-margin: 1.25rem;
+  --content-max-width: 72rem;
+  --ball-size: 2.5rem;
+  --badge-size: 2.5rem;
+  --day-pill-width: 3.5rem;
+  --card-accent-height: 3px;
+  --live-dot-size: 0.5rem;
+  --focus-ring-width: 3px;
+
+  /* Ombres et animations */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 5%);
+  --duration-fast: 150ms;
+  --duration-menu: 350ms;
+  --duration-menu-item: 300ms;
+  --delay-menu-item-step: 60ms;
+  --easing-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --color-background: #0b0c0f;
+    --color-surface: #16181d;
+    --color-text: #eef0f3;
+    --color-text-muted: #a3a9b6;
+    --color-text-faded: #8b919d;
+    --color-border: #2c3038;
+    --color-accent-text: #fb923c;
+    --color-live: #f87171;
+    --color-focus: #93c5fd;
+    --color-team-fallback: #4b5563;
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
   }
-}
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
+  html {
+    color-scheme: dark;
+  }
 }
 
 * {
@@ -27,24 +92,45 @@ body {
   margin: 0;
 }
 
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family);
+  color: var(--color-text);
+  background: var(--color-background);
+  -webkit-font-smoothing: antialiased;
+}
+
 a {
   color: inherit;
   text-decoration: none;
 }
 
-.imgDark {
-  display: none;
+ul,
+ol {
+  list-style: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+button {
+  font: inherit;
+  color: inherit;
+}
 
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Texte lu par les lecteurs d'écran mais invisible à l'écran. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }

@@ -1,0 +1,92 @@
+.picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.arrow {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--badge-size);
+  height: var(--badge-size);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  font-size: var(--font-size-xl);
+  line-height: 1;
+}
+
+.arrow:hover {
+  border-color: var(--color-accent);
+}
+
+.days {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding: var(--space-1);
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.days::-webkit-scrollbar {
+  display: none;
+}
+
+/* Les pastilles se partagent toute la largeur, sans descendre sous leur taille minimale :
+   sur un petit écran, la rangée défile. */
+.days > li {
+  flex: 1 0 var(--day-pill-width);
+}
+
+.day {
+  /* Garde les textes masqués (position: absolute) à l'intérieur de la rangée qui défile. */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-2) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  scroll-snap-align: start;
+  transition: border-color var(--duration-fast) ease;
+}
+
+.day:hover {
+  border-color: var(--color-accent);
+}
+
+.weekday {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: capitalize;
+}
+
+.dayNumber {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.selected {
+  border-color: transparent;
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+}
+
+.selected .weekday {
+  color: var(--color-on-accent);
+  font-weight: var(--font-weight-bold);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day {
+    transition: none;
+  }
+}

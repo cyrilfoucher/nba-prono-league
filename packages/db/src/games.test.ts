@@ -4,7 +4,7 @@ import { fetchGamesByDate, type Game } from "@repo/core";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Prisma, PrismaClient } from "./generated/prisma/client";
-import { saveGames } from "./games";
+import { getGamesOfDay, saveGames } from "./games";
 
 const rawFixture = readFileSync(
   new URL("../../core/src/balldontlie/fixtures/games-2026-11-22.json", import.meta.url),
@@ -32,19 +32,28 @@ function gameById(games: Game[], id: number): Game {
   return game;
 }
 
+function createFakeReadDb(rows: Game[]) {
+  const gameFindMany = vi.fn<(args: Prisma.GameFindManyArgs) => Promise<Game[]>>(() =>
+    Promise.resolve(rows),
+  );
+  // getGamesOfDay n'utilise que game.findMany : le reste de PrismaClient est inutile ici.
+  const db = { game: { findMany: gameFindMany } } as unknown as PrismaClient;
+  return { db, gameFindMany };
+}
+
 let games: Game[];
 
-describe("saveGames", () => {
-  beforeAll(async () => {
-    // On passe par la vraie fonction de core, avec un fetch simulé qui renvoie la fixture.
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(() => Promise.resolve(new Response(rawFixture, { status: 200 }))),
-    );
-    games = await fetchGamesByDate("2026-11-22", "test-api-key");
-    vi.unstubAllGlobals();
-  });
+beforeAll(async () => {
+  // On passe par la vraie fonction de core, avec un fetch simulé qui renvoie la fixture.
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(() => Promise.resolve(new Response(rawFixture, { status: 200 }))),
+  );
+  games = await fetchGamesByDate("2026-11-22", "test-api-key");
+  vi.unstubAllGlobals();
+});
 
+describe("saveGames", () => {
   it("renvoie le nombre de matchs enregistrés", async () => {
     const { db, gameUpsert } = createFakeDb();
 
@@ -139,5 +148,82 @@ describe("saveGames", () => {
 
     await expect(saveGames(db, games)).rejects.toThrow("connexion perdue");
     expect(gameUpsert).not.toHaveBeenCalled();
+  });
+});
+
+describe("getGamesOfDay", () => {
+  it.each([
+    {
+      label: "un jour d'hiver (UTC+1)",
+      date: "2026-11-26",
+      gte: "2026-11-25T23:00:00.000Z",
+      lt: "2026-11-26T23:00:00.000Z",
+    },
+    {
+      label: "un jour d'été (UTC+2)",
+      date: "2026-07-15",
+      gte: "2026-07-14T22:00:00.000Z",
+      lt: "2026-07-15T22:00:00.000Z",
+    },
+    {
+      label: "le passage à l'heure d'été (journée de 23 h)",
+      date: "2026-03-29",
+      gte: "2026-03-28T23:00:00.000Z",
+      lt: "2026-03-29T22:00:00.000Z",
+    },
+    {
+      label: "le passage à l'heure d'hiver (journée de 25 h)",
+      date: "2026-10-25",
+      gte: "2026-10-24T22:00:00.000Z",
+      lt: "2026-10-25T23:00:00.000Z",
+    },
+  ])("filtre sur le jour de Paris pour $label", async ({ date, gte, lt }) => {
+    const { db, gameFindMany } = createFakeReadDb([]);
+
+    await getGamesOfDay(db, date);
+
+    expect(gameFindMany).toHaveBeenCalledTimes(1);
+    const [args] = gameFindMany.mock.calls[0] ?? [];
+    expect(args?.where).toEqual({ startsAt: { gte: new Date(gte), lt: new Date(lt) } });
+  });
+
+  it("inclut les deux équipes et trie par heure de début croissante", async () => {
+    const { db, gameFindMany } = createFakeReadDb([]);
+
+    await getGamesOfDay(db, "2026-11-22");
+
+    expect(gameFindMany).toHaveBeenCalledWith({
+      where: {
+        startsAt: {
+          gte: new Date("2026-11-21T23:00:00.000Z"),
+          lt: new Date("2026-11-22T23:00:00.000Z"),
+        },
+      },
+      include: { homeTeam: true, visitorTeam: true },
+      orderBy: { startsAt: "asc" },
+    });
+  });
+
+  it("renvoie tels quels les matchs renvoyés par la base", async () => {
+    const { db } = createFakeReadDb(games);
+
+    const result = await getGamesOfDay(db, "2026-11-22");
+
+    expect(result).toBe(games);
+  });
+
+  it("renvoie un tableau vide quand la base ne trouve aucun match", async () => {
+    const { db } = createFakeReadDb([]);
+
+    const result = await getGamesOfDay(db, "2026-11-26");
+
+    expect(result).toEqual([]);
+  });
+
+  it("propage l'erreur si la base échoue", async () => {
+    const { db, gameFindMany } = createFakeReadDb([]);
+    gameFindMany.mockRejectedValueOnce(new Error("connexion perdue"));
+
+    await expect(getGamesOfDay(db, "2026-11-22")).rejects.toThrow("connexion perdue");
   });
 });

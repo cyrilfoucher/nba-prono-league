@@ -11,8 +11,9 @@ if (existsSync(rootEnvFile)) {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // @repo/db exporte directement ses fichiers TypeScript : Next.js doit les compiler.
-  transpilePackages: ["@repo/db"],
+  // @repo/core et @repo/db exportent directement leurs fichiers TypeScript : Next.js
+  // doit les compiler.
+  transpilePackages: ["@repo/core", "@repo/db"],
 };
 
 export default nextConfig;

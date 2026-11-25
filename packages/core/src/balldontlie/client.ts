@@ -1,6 +1,6 @@
-import type { Game } from "../games/types.js";
-import { gamesResponseSchema } from "./schemas.js";
-import { toGame } from "./to-game.js";
+import type { Game } from "../games/types";
+import { gamesResponseSchema } from "./schemas";
+import { toGame } from "./to-game";
 
 const GAMES_URL = "https://api.balldontlie.io/v1/games";
 

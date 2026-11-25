@@ -1,0 +1,21 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.withAccent {
+  padding-top: calc(var(--space-4) + var(--card-accent-height));
+}
+
+.withAccent::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--card-accent-height);
+  background: var(--card-accent);
+}

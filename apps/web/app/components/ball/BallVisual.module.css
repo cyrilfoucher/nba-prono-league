@@ -1,0 +1,5 @@
+.ball {
+  display: block;
+  width: var(--ball-size);
+  height: var(--ball-size);
+}

@@ -1,0 +1,40 @@
+.line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--badge-size);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.score {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.winner .name {
+  font-weight: var(--font-weight-bold);
+}
+
+.winner .score {
+  color: var(--color-accent-text);
+}
+
+.loser .name,
+.loser .score {
+  color: var(--color-text-faded);
+  font-weight: var(--font-weight-regular);
+}
+
+.none {
+  color: inherit;
+}

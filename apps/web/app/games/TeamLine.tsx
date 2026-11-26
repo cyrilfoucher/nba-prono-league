@@ -21,7 +21,13 @@ export function TeamLine({ team, sideLabel, score, showScore, result }: TeamLine
 
   return (
     <li className={classNames(styles.line, styles[result])}>
-      <Badge label={team.abbreviation} background={colors.primary} color={colors.text} decorative />
+      <Badge
+        label={team.abbreviation}
+        background={colors.primary}
+        color={colors.text}
+        borderColor={colors.secondary}
+        decorative
+      />
       <span className={styles.name}>
         {team.name}
         <span className="visually-hidden">

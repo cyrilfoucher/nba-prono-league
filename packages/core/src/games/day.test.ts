@@ -1,5 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getCurrentParisDay, getParisDayRange, isValidDate, shiftDay } from "./day";
+import {
+  getAvailableDays,
+  getCurrentParisDay,
+  getParisDayRange,
+  isAvailableDay,
+  isValidDate,
+  shiftDay,
+} from "./day";
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
@@ -144,5 +151,34 @@ describe("isValidDate", () => {
     "２０２６-11-26",
   ])("refuse le format invalide %j", (value) => {
     expect(isValidDate(value)).toBe(false);
+  });
+});
+
+describe("getAvailableDays", () => {
+  it("va du début de la saison jusqu'à 7 jours après aujourd'hui", () => {
+    expect(getAvailableDays("2026-11-26")).toEqual({ first: "2026-10-20", last: "2026-12-03" });
+  });
+
+  it("passe au mois et à l'année suivants", () => {
+    expect(getAvailableDays("2026-12-28").last).toBe("2027-01-04");
+  });
+});
+
+describe("isAvailableDay", () => {
+  const today = "2026-11-26";
+
+  it.each(["2026-10-20", "2026-11-26", "2026-12-03"])("accepte %s", (day) => {
+    expect(isAvailableDay(day, today)).toBe(true);
+  });
+
+  it.each(["2026-10-19", "2026-12-04", "2042-01-01"])(
+    "refuse %s, hors des jours disponibles",
+    (day) => {
+      expect(isAvailableDay(day, today)).toBe(false);
+    },
+  );
+
+  it.each(["2026-02-31", "26-11-2026", ""])("refuse la date invalide %j", (day) => {
+    expect(isAvailableDay(day, today)).toBe(false);
   });
 });

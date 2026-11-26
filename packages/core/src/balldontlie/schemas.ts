@@ -28,6 +28,7 @@ const gameSchema = z.object({
 
 export const gamesResponseSchema = z.object({
   data: z.array(gameSchema),
+  meta: z.object({ next_cursor: z.number().optional() }),
 });
 
 export type BallDontLieGame = z.infer<typeof gameSchema>;

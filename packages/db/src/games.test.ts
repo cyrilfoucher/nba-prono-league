@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-import { fetchGamesByDate, type Game } from "@repo/core";
+import { fetchGamesByDates, type Game } from "@repo/core";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Prisma, PrismaClient } from "./generated/prisma/client";
@@ -49,7 +49,7 @@ beforeAll(async () => {
     "fetch",
     vi.fn(() => Promise.resolve(new Response(rawFixture, { status: 200 }))),
   );
-  games = await fetchGamesByDate("2026-11-22", "test-api-key");
+  games = await fetchGamesByDates(["2026-11-22"], "test-api-key");
   vi.unstubAllGlobals();
 });
 

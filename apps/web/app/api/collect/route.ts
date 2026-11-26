@@ -1,6 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
-import { fetchGamesByDate, isValidDate, type Game } from "@repo/core";
+import { fetchGamesByDates, getCollectDates, isValidDate, type Game } from "@repo/core";
 import { prisma, saveGames } from "@repo/db";
 
 function readEnv(name: string): string | null {
@@ -20,16 +20,6 @@ function isAuthorized(request: Request, secret: string): boolean {
   const received = createHash("sha256").update(header).digest();
   const expected = createHash("sha256").update(`Bearer ${secret}`).digest();
   return timingSafeEqual(received, expected);
-}
-
-// Le calendrier NBA est daté à l'heure de New York.
-function todayInNewYork(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -57,11 +47,12 @@ export async function GET(request: Request): Promise<Response> {
       { status: 400 },
     );
   }
-  const date = dateParam ?? todayInNewYork();
+  // Sans paramètre : la veille, le jour même et les 7 jours suivants (dates de New York).
+  const dates = dateParam === null ? getCollectDates() : [dateParam];
 
   let games: Game[];
   try {
-    games = await fetchGamesByDate(date, apiKey);
+    games = await fetchGamesByDates(dates, apiKey);
   } catch (error) {
     return Response.json(
       {
@@ -79,5 +70,5 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ error: "Échec de l'enregistrement en base" }, { status: 500 });
   }
 
-  return Response.json({ date, saved });
+  return Response.json({ dates, saved });
 }

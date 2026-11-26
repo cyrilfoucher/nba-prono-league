@@ -25,7 +25,7 @@ const TEAM_PALETTES: Record<string, TeamPalette> = {
   BKN: { primary: "#000000", secondary: "#FFFFFF" },
   // Choix validés par Cyril : le nom complet est toujours écrit à côté du badge,
   // qui sert de logo ; un contraste un peu sous le seuil reste acceptable.
-  CHA: { primary: "#00788C", secondary: "#FFFFFF", text: "#1D1160" },
+  CHA: { primary: "#1D1160", secondary: "#00788C", text: "#00788C" },
   CHI: { primary: "#CE1141", secondary: "#FFFFFF", text: "#000000" },
   CLE: { primary: "#860038", secondary: "#FDBB30" },
   DAL: { primary: "#00538C", secondary: "#B8C4CA" },
@@ -41,7 +41,7 @@ const TEAM_PALETTES: Record<string, TeamPalette> = {
   MIL: { primary: "#00471B", secondary: "#EEE1C6" },
   MIN: { primary: "#0C2340", secondary: "#78BE20" },
   NOP: { primary: "#0C2340", secondary: "#85714D" },
-  NYK: { primary: "#006BB6", secondary: "#F58426" },
+  NYK: { primary: "#F58426", secondary: "#006BB6", text: "#000000" },
   OKC: { primary: "#007AC1", secondary: "#EF3B24" },
   ORL: { primary: "#0077C0", secondary: "#C4CED4" },
   PHI: { primary: "#006BB6", secondary: "#ED174C" },

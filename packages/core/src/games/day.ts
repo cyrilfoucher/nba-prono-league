@@ -62,3 +62,23 @@ export function isValidDate(value: string): boolean {
   // Une date inexistante (2026-02-31) est décalée au mois suivant par Date.
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
+
+// Premier jour de la saison NBA 2026-2027 : à mettre à jour à chaque nouvelle saison.
+const SEASON_START = "2026-10-20";
+// La collecte automatique récupère les matchs jusqu'à 7 jours à l'avance.
+const DAYS_AHEAD = 7;
+
+// Jours que l'on peut afficher : du début de la saison jusqu'à 7 jours après aujourd'hui.
+export function getAvailableDays(today: string): { first: string; last: string } {
+  return { first: SEASON_START, last: shiftDay(today, DAYS_AHEAD) };
+}
+
+// Vérifie qu'un jour est une date valide comprise dans les jours disponibles.
+export function isAvailableDay(day: string, today: string): boolean {
+  if (!isValidDate(day)) {
+    return false;
+  }
+  const { first, last } = getAvailableDays(today);
+  // Les dates AAAA-MM-JJ se comparent correctement comme des chaînes.
+  return day >= first && day <= last;
+}

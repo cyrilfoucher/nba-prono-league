@@ -1,4 +1,4 @@
-import { getCurrentParisDay, isValidDate } from "@repo/core";
+import { getCurrentParisDay, isAvailableDay } from "@repo/core";
 import { getGamesOfDay, prisma } from "@repo/db";
 
 import { DayPicker, dayHref } from "./games/DayPicker";
@@ -14,7 +14,8 @@ interface GamesOfDayPageProps {
 export default async function GamesOfDayPage({ searchParams }: GamesOfDayPageProps) {
   const { jour } = await searchParams;
   const today = getCurrentParisDay();
-  const day = typeof jour === "string" && isValidDate(jour) ? jour : today;
+  // Un jour absent, invalide ou hors des jours disponibles renvoie vers aujourd'hui.
+  const day = typeof jour === "string" && isAvailableDay(jour, today) ? jour : today;
   const games = await getGamesOfDay(prisma, day);
 
   return (

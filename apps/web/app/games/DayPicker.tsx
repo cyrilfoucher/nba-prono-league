@@ -1,4 +1,4 @@
-import { shiftDay } from "@repo/core";
+import { getAvailableDays, shiftDay } from "@repo/core";
 import Link from "next/link";
 
 import { classNames } from "../components/class-names";
@@ -22,7 +22,16 @@ export function DayPicker({ selectedDay, today }: DayPickerProps) {
   const lastDayFromToday = shiftDay(today, VISIBLE_DAYS - 1);
   // Les dates AAAA-MM-JJ se comparent correctement comme des chaînes.
   const isInTodayWindow = selectedDay >= today && selectedDay <= lastDayFromToday;
-  const firstDay = isInTodayWindow ? today : selectedDay;
+  const { first, last } = getAvailableDays(today);
+  // Les pastilles restent entre le premier et le dernier jour disponibles.
+  const latestStart = shiftDay(last, -(VISIBLE_DAYS - 1));
+  let firstDay = isInTodayWindow ? today : selectedDay;
+  if (firstDay > latestStart) {
+    firstDay = latestStart;
+  }
+  if (firstDay < first) {
+    firstDay = first;
+  }
   const days = Array.from({ length: VISIBLE_DAYS }, (_, index) => shiftDay(firstDay, index));
 
   function labels(day: string): { top: string; bottom: string; spoken: string } {
@@ -39,13 +48,11 @@ export function DayPicker({ selectedDay, today }: DayPickerProps) {
 
   return (
     <nav className={styles.picker} aria-label="Choisir un jour">
-      <Link
-        href={dayHref(shiftDay(selectedDay, -1))}
-        className={styles.arrow}
-        aria-label="Jour précédent"
-      >
-        <span aria-hidden>‹</span>
-      </Link>
+      <DayArrow
+        targetDay={selectedDay > first ? shiftDay(selectedDay, -1) : null}
+        label="Jour précédent"
+        symbol="‹"
+      />
       <ul className={styles.days}>
         {days.map((day) => {
           const { top, bottom, spoken } = labels(day);
@@ -69,13 +76,38 @@ export function DayPicker({ selectedDay, today }: DayPickerProps) {
           );
         })}
       </ul>
-      <Link
-        href={dayHref(shiftDay(selectedDay, 1))}
-        className={styles.arrow}
-        aria-label="Jour suivant"
-      >
-        <span aria-hidden>›</span>
-      </Link>
+      <DayArrow
+        targetDay={selectedDay < last ? shiftDay(selectedDay, 1) : null}
+        label="Jour suivant"
+        symbol="›"
+      />
     </nav>
+  );
+}
+
+interface DayArrowProps {
+  // null : on est sur la limite des jours disponibles, la flèche est désactivée.
+  targetDay: string | null;
+  label: string;
+  symbol: string;
+}
+
+function DayArrow({ targetDay, label, symbol }: DayArrowProps) {
+  if (targetDay === null) {
+    return (
+      <span
+        className={classNames(styles.arrow, styles.arrowDisabled)}
+        role="link"
+        aria-disabled="true"
+        aria-label={label}
+      >
+        <span aria-hidden>{symbol}</span>
+      </span>
+    );
+  }
+  return (
+    <Link href={dayHref(targetDay)} className={styles.arrow} aria-label={label}>
+      <span aria-hidden>{symbol}</span>
+    </Link>
   );
 }

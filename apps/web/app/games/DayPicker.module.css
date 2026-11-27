@@ -22,6 +22,14 @@
   border-color: var(--color-accent);
 }
 
+.arrowDisabled,
+.arrowDisabled:hover {
+  border-color: var(--color-border);
+  color: var(--color-text-muted);
+  opacity: 0.4;
+  cursor: default;
+}
+
 .days {
   display: flex;
   flex: 1;

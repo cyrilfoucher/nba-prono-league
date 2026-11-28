@@ -25,6 +25,12 @@
   padding: var(--space-6) var(--space-4);
 }
 
+.settings {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-8) var(--space-8);
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -61,8 +67,9 @@ a.entry:hover {
   background: var(--color-menu-item-hover);
 }
 
+/* --color-accent-text reste lisible sur le fond clair comme sur le fond sombre du menu. */
 .entry[aria-current="page"] {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 .icon {

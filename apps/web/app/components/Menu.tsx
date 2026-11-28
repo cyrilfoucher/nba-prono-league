@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, type ComponentType, type CSSProperties, type SVGProps } from "react";
 
+import type { Theme } from "../theme/theme";
+import { ThemeSwitcher } from "../theme/ThemeSwitcher";
 import { classNames } from "./class-names";
 import { GamesIcon, LeaguesIcon, PicksIcon, ProfileIcon, RankingsIcon } from "./icons";
 import styles from "./Menu.module.css";
@@ -28,11 +30,12 @@ interface MenuProps {
   id: string;
   open: boolean;
   currentPath: string;
+  initialTheme: Theme;
   // Appelée après un clic sur un lien du menu.
   onNavigate: () => void;
 }
 
-export function Menu({ id, open, currentPath, onNavigate }: MenuProps) {
+export function Menu({ id, open, currentPath, initialTheme, onNavigate }: MenuProps) {
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
 
   useEffect(() => {
@@ -72,6 +75,9 @@ export function Menu({ id, open, currentPath, onNavigate }: MenuProps) {
           })}
         </ul>
       </nav>
+      <div className={styles.settings}>
+        <ThemeSwitcher initialTheme={initialTheme} />
+      </div>
     </div>
   );
 }

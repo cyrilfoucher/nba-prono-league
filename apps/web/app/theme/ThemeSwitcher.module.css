@@ -1,0 +1,75 @@
+.switcher {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--space-3);
+  color: var(--color-menu-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.options {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--color-menu-item-hover);
+  border-radius: var(--radius-full);
+}
+
+.option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-full);
+  color: var(--color-menu-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+}
+
+.option:hover {
+  background: var(--color-menu-item-hover);
+}
+
+/* Le bouton radio natif reste focusable et lu par les lecteurs d'écran, mais invisible. */
+.input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.option:has(.input:checked) {
+  background: var(--color-accent-gradient);
+  color: var(--color-on-accent);
+}
+
+.option:has(.input:focus-visible) {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* En contraste élevé, le dégradé disparaît : on reprend les couleurs de sélection du système. */
+@media (forced-colors: active) {
+  .option:has(.input:checked) {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option {
+    transition: none;
+  }
+}

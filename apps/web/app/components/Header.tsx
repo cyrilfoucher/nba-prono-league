@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+import type { Theme } from "../theme/theme";
 import { MenuBall } from "./ball/MenuBall";
 import { Button } from "./Button";
 import { classNames } from "./class-names";
@@ -14,11 +15,18 @@ const MENU_ID = "main-menu";
 interface HeaderProps {
   isMenuOpen: boolean;
   currentPath: string;
+  initialTheme: Theme;
   onToggleMenu: () => void;
   onCloseMenu: () => void;
 }
 
-export function Header({ isMenuOpen, currentPath, onToggleMenu, onCloseMenu }: HeaderProps) {
+export function Header({
+  isMenuOpen,
+  currentPath,
+  initialTheme,
+  onToggleMenu,
+  onCloseMenu,
+}: HeaderProps) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   // Ferme le menu et remet le focus sur son bouton, pour ne pas perdre l'utilisateur
@@ -75,6 +83,7 @@ export function Header({ isMenuOpen, currentPath, onToggleMenu, onCloseMenu }: H
         id={MENU_ID}
         open={isMenuOpen}
         currentPath={currentPath}
+        initialTheme={initialTheme}
         onNavigate={closeMenuAndFocusButton}
       />
     </>

@@ -1,30 +1,30 @@
 :root {
-  /* Couleurs : thème clair */
-  --color-background: #f3f4f6;
-  --color-surface: #ffffff;
-  --color-text: #15171c;
-  --color-text-muted: #596070;
-  --color-text-faded: #6b7280;
-  --color-border: #d9dce3;
+  /* Couleurs : light-dark(clair, sombre) choisit selon color-scheme, réglé plus bas. */
+  --color-background: light-dark(#f3f4f6, #0b0c0f);
+  --color-surface: light-dark(#ffffff, #16181d);
+  --color-text: light-dark(#15171c, #eef0f3);
+  --color-text-muted: light-dark(#596070, #a3a9b6);
+  --color-text-faded: light-dark(#6b7280, #8b919d);
+  --color-border: light-dark(#d9dce3, #2c3038);
   --color-accent: #f97316;
   --color-accent-gradient: linear-gradient(135deg, #fb923c 0%, #f97316 55%, #ea580c 100%);
   --color-on-accent: #1a0c00;
-  --color-accent-text: #c2410c;
-  --color-live: #dc2626;
-  --color-focus: #2563eb;
-  --color-team-fallback: #6b7280;
+  --color-accent-text: light-dark(#c2410c, #fb923c);
+  --color-live: light-dark(#dc2626, #f87171);
+  --color-focus: light-dark(#2563eb, #93c5fd);
+  --color-team-fallback: light-dark(#6b7280, #4b5563);
   /* Couleurs des conférences, reprises des logos de la NBA : bleu à l'Est, rouge à l'Ouest. */
-  --color-east: #1d428a;
-  --color-west: #c8102e;
+  --color-east: light-dark(#1d428a, #3b6fd6);
+  --color-west: light-dark(#c8102e, #e5384f);
   /* Victoires et défaites dans le classement (contraste suffisant sur la surface). */
-  --color-win: #15803d;
-  --color-loss: #b91c1c;
+  --color-win: light-dark(#15803d, #4ade80);
+  --color-loss: light-dark(#b91c1c, #f87171);
   --color-header-background: rgb(10 10 12 / 72%);
   --color-header-text: #ffffff;
-  --color-menu-background: #0a0a0c;
-  --color-menu-text: #f5f5f5;
-  --color-menu-text-muted: #9ca3af;
-  --color-menu-item-hover: rgb(255 255 255 / 8%);
+  --color-menu-background: light-dark(#ffffff, #0a0a0c);
+  --color-menu-text: light-dark(#15171c, #f5f5f5);
+  --color-menu-text-muted: light-dark(#596070, #9ca3af);
+  --color-menu-item-hover: light-dark(rgb(0 0 0 / 6%), rgb(255 255 255 / 8%));
 
   /* Typographie */
   --font-family: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -64,7 +64,9 @@
   --focus-ring-width: 3px;
 
   /* Ombres et animations */
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 5%);
+  --shadow-card:
+    0 1px 2px light-dark(rgb(0 0 0 / 6%), rgb(0 0 0 / 40%)),
+    0 4px 12px light-dark(rgb(0 0 0 / 5%), transparent);
   --duration-fast: 150ms;
   --duration-menu: 350ms;
   --duration-menu-item: 300ms;
@@ -72,28 +74,17 @@
   --easing-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: #0b0c0f;
-    --color-surface: #16181d;
-    --color-text: #eef0f3;
-    --color-text-muted: #a3a9b6;
-    --color-text-faded: #8b919d;
-    --color-border: #2c3038;
-    --color-accent-text: #fb923c;
-    --color-live: #f87171;
-    --color-focus: #93c5fd;
-    --color-team-fallback: #4b5563;
-    --color-east: #3b6fd6;
-    --color-west: #e5384f;
-    --color-win: #4ade80;
-    --color-loss: #f87171;
-    --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
-  }
+/* Sans attribut data-theme, on suit le système ; sinon, le choix de l'utilisateur. */
+:root {
+  color-scheme: light dark;
+}
 
-  html {
-    color-scheme: dark;
-  }
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 * {

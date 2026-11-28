@@ -4,17 +4,19 @@ import { usePathname } from "next/navigation";
 import { useCallback, useState, type ReactNode } from "react";
 
 import styles from "./AppShell.module.css";
+import type { Theme } from "../theme/theme";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 
 interface AppShellProps {
   children: ReactNode;
+  initialTheme: Theme;
 }
 
 // Garde l'état du menu au-dessus de l'en-tête, du contenu et du pied de page : quand
 // le menu est ouvert, le contenu et le pied de page deviennent inertes (ni clic ni
 // focus clavier), seul l'en-tête reste accessible.
-export function AppShell({ children }: AppShellProps) {
+export function AppShell({ children, initialTheme }: AppShellProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const [previousPathname, setPreviousPathname] = useState(pathname);
@@ -32,6 +34,7 @@ export function AppShell({ children }: AppShellProps) {
       <Header
         isMenuOpen={isMenuOpen}
         currentPath={pathname}
+        initialTheme={initialTheme}
         onToggleMenu={() => setIsMenuOpen((open) => !open)}
         onCloseMenu={closeMenu}
       />

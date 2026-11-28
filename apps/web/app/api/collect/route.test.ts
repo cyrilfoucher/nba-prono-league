@@ -213,16 +213,26 @@ describe("GET /api/collect", () => {
       expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(["2026-11-22"], API_KEY);
     });
 
-    it("accepte les deux extrémités de la saison disponible et passe au mois suivant", async () => {
-      const response = await GET(collectRequest("?du=2026-10-20&au=2026-12-04"));
+    it("accepte une période de 31 jours qui part du début de la saison et passe au mois suivant", async () => {
+      const response = await GET(collectRequest("?du=2026-10-20&au=2026-11-19"));
 
       expect(response.status).toBe(200);
       const [dates] = vi.mocked(fetchGamesByDates).mock.calls[0] ?? [];
-      expect(dates).toHaveLength(46);
+      expect(dates).toHaveLength(31);
       expect(dates?.[0]).toBe("2026-10-20");
       expect(dates).toContain("2026-10-31");
       expect(dates).toContain("2026-11-01");
-      expect(dates?.at(-1)).toBe("2026-12-04");
+      expect(dates?.at(-1)).toBe("2026-11-19");
+    });
+
+    it("renvoie 400 pour une période de plus de 31 jours, sans appeler l'API", async () => {
+      const response = await GET(collectRequest("?du=2026-10-20&au=2026-11-20"));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: "Période trop longue : 31 jours au plus",
+      });
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
     });
 
     it("se base sur le jour de Paris : à 23 h 30 UTC, Paris est déjà le lendemain", async () => {

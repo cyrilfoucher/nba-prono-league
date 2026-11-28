@@ -11,6 +11,9 @@ import {
 } from "@repo/core";
 import { prisma, saveGames } from "@repo/db";
 
+// Environ 7 matchs par jour : 31 jours tiennent en 3 pages de 100 matchs.
+const MAX_PERIOD_DAYS = 31;
+
 function readEnv(name: string): string | null {
   const value = process.env[name];
   return value ? value : null;
@@ -73,6 +76,13 @@ export async function GET(request: Request): Promise<Response> {
       );
     }
     dates = getDatesBetween(fromParam, toParam);
+    // Au-delà, BALLDONTLIE renverrait plus de 5 pages et son quota (5 requêtes par minute) sauterait.
+    if (dates.length > MAX_PERIOD_DAYS) {
+      return Response.json(
+        { error: `Période trop longue : ${String(MAX_PERIOD_DAYS)} jours au plus` },
+        { status: 400 },
+      );
+    }
   } else if (dateParam !== null) {
     if (!isValidDate(dateParam)) {
       return Response.json(

@@ -1,6 +1,14 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
-import { fetchGamesByDates, getCollectDates, isValidDate, type Game } from "@repo/core";
+import {
+  fetchGamesByDates,
+  getCollectDates,
+  getCurrentParisDay,
+  getDatesBetween,
+  isAvailableDay,
+  isValidDate,
+  type Game,
+} from "@repo/core";
 import { prisma, saveGames } from "@repo/db";
 
 function readEnv(name: string): string | null {
@@ -40,15 +48,43 @@ export async function GET(request: Request): Promise<Response> {
     return missingEnvResponse("DATABASE_URL");
   }
 
-  const dateParam = new URL(request.url).searchParams.get("date");
-  if (dateParam !== null && !isValidDate(dateParam)) {
-    return Response.json(
-      { error: "Paramètre date invalide, format attendu AAAA-MM-JJ" },
-      { status: 400 },
-    );
+  const params = new URL(request.url).searchParams;
+  const dateParam = params.get("date");
+  const fromParam = params.get("du");
+  const toParam = params.get("au");
+
+  let dates: string[];
+  if (fromParam !== null || toParam !== null) {
+    // Rattrapage d'une période (?du=…&au=…), limitée aux jours disponibles de la saison.
+    const today = getCurrentParisDay();
+    if (
+      fromParam === null ||
+      toParam === null ||
+      !isAvailableDay(fromParam, today) ||
+      !isAvailableDay(toParam, today) ||
+      fromParam > toParam
+    ) {
+      return Response.json(
+        {
+          error:
+            "Période invalide : du et au attendus au format AAAA-MM-JJ, dans la saison en cours, du avant au",
+        },
+        { status: 400 },
+      );
+    }
+    dates = getDatesBetween(fromParam, toParam);
+  } else if (dateParam !== null) {
+    if (!isValidDate(dateParam)) {
+      return Response.json(
+        { error: "Paramètre date invalide, format attendu AAAA-MM-JJ" },
+        { status: 400 },
+      );
+    }
+    dates = [dateParam];
+  } else {
+    // Sans paramètre : la veille, le jour même et les 7 jours suivants (dates de New York).
+    dates = getCollectDates();
   }
-  // Sans paramètre : la veille, le jour même et les 7 jours suivants (dates de New York).
-  const dates = dateParam === null ? getCollectDates() : [dateParam];
 
   let games: Game[];
   try {

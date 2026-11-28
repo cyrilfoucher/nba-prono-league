@@ -25,3 +25,14 @@ export function getCollectDates(now: Date = new Date()): string[] {
   }
   return dates;
 }
+
+// Liste des dates de first à last, les deux incluses (vide si first est après last).
+export function getDatesBetween(first: string, last: string): string[] {
+  const dates: string[] = [];
+  let date = first;
+  while (date <= last) {
+    dates.push(date);
+    date = shiftDay(date, 1);
+  }
+  return dates;
+}

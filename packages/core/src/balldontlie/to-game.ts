@@ -25,6 +25,7 @@ function toTeam(apiTeam: BallDontLieGame["home_team"]): Team {
     id: apiTeam.id,
     name: apiTeam.full_name,
     abbreviation: apiTeam.abbreviation,
+    conference: apiTeam.conference,
   };
 }
 

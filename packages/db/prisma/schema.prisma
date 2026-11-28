@@ -17,12 +17,18 @@ enum GameStatus {
   canceled
 }
 
+enum Conference {
+  East
+  West
+}
+
 model Team {
-  id           Int    @id
+  id           Int        @id
   name         String
   abbreviation String
-  homeGames    Game[] @relation("HomeTeam")
-  visitorGames Game[] @relation("VisitorTeam")
+  conference   Conference
+  homeGames    Game[]     @relation("HomeTeam")
+  visitorGames Game[]     @relation("VisitorTeam")
 }
 
 model Game {

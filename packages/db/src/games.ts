@@ -1,4 +1,11 @@
-import { getParisDayRange, type Game, type Team } from "@repo/core";
+import {
+  getParisDayRange,
+  REGULAR_SEASON_END,
+  SEASON_START,
+  shiftDay,
+  type Game,
+  type Team,
+} from "@repo/core";
 
 import type { PrismaClient } from "./generated/prisma/client";
 
@@ -12,8 +19,13 @@ export async function saveGames(db: PrismaClient, games: Game[]): Promise<number
   for (const team of teams.values()) {
     await db.team.upsert({
       where: { id: team.id },
-      create: { id: team.id, name: team.name, abbreviation: team.abbreviation },
-      update: { name: team.name, abbreviation: team.abbreviation },
+      create: {
+        id: team.id,
+        name: team.name,
+        abbreviation: team.abbreviation,
+        conference: team.conference,
+      },
+      update: { name: team.name, abbreviation: team.abbreviation, conference: team.conference },
     });
   }
 
@@ -45,6 +57,19 @@ export async function getGamesOfDay(db: PrismaClient, date: string): Promise<Gam
   const { start, end } = getParisDayRange(date);
   return db.game.findMany({
     where: { startsAt: { gte: start, lt: end } },
+    include: { homeTeam: true, visitorTeam: true },
+    orderBy: { startsAt: "asc" },
+  });
+}
+
+// Récupère les matchs terminés de la saison régulière en cours, avec leurs équipes.
+// Le play-in et les playoffs, qui commencent après la saison régulière, ne comptent pas.
+export async function getFinalGamesOfSeason(db: PrismaClient): Promise<Game[]> {
+  const { start } = getParisDayRange(SEASON_START);
+  // Les matchs du soir du dernier jour (heure de New York) tombent le lendemain à Paris.
+  const { end } = getParisDayRange(shiftDay(REGULAR_SEASON_END, 1));
+  return db.game.findMany({
+    where: { startsAt: { gte: start, lt: end }, status: "final" },
     include: { homeTeam: true, visitorTeam: true },
     orderBy: { startsAt: "asc" },
   });

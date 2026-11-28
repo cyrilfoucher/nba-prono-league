@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 
 import { fetchGamesByDates, type Game } from "@repo/core";
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { Prisma, PrismaClient } from "./generated/prisma/client";
-import { getGamesOfDay, saveGames } from "./games";
+import { getFinalGamesOfSeason, getGamesOfDay, saveGames } from "./games";
 
 const rawFixture = readFileSync(
   new URL("../../core/src/balldontlie/fixtures/games-2026-11-22.json", import.meta.url),
@@ -102,9 +102,43 @@ describe("saveGames", () => {
 
     expect(teamUpsert).toHaveBeenNthCalledWith(1, {
       where: { id: 1 },
-      create: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL" },
-      update: { name: "Atlanta Hawks", abbreviation: "ATL" },
+      create: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL", conference: "East" },
+      update: { name: "Atlanta Hawks", abbreviation: "ATL", conference: "East" },
     });
+  });
+
+  it("envoie la conférence de chaque équipe dans create et dans update", async () => {
+    const { db, teamUpsert } = createFakeDb();
+
+    // MIA (Est) reçoit OKC (Ouest) dans la fixture.
+    await saveGames(db, [gameById(games, 21718163)]);
+
+    expect(teamUpsert).toHaveBeenCalledTimes(2);
+    expect(teamUpsert).toHaveBeenNthCalledWith(1, {
+      where: { id: 16 },
+      create: { id: 16, name: "Miami Heat", abbreviation: "MIA", conference: "East" },
+      update: { name: "Miami Heat", abbreviation: "MIA", conference: "East" },
+    });
+    expect(teamUpsert).toHaveBeenNthCalledWith(2, {
+      where: { id: 21 },
+      create: { id: 21, name: "Oklahoma City Thunder", abbreviation: "OKC", conference: "West" },
+      update: { name: "Oklahoma City Thunder", abbreviation: "OKC", conference: "West" },
+    });
+  });
+
+  it("envoie toujours une conférence, la même dans create et update, pour les 14 équipes", async () => {
+    const { db, teamUpsert } = createFakeDb();
+
+    await saveGames(db, games);
+
+    const byId = new Map(games.flatMap((g) => [g.homeTeam, g.visitorTeam]).map((t) => [t.id, t]));
+    expect(teamUpsert).toHaveBeenCalledTimes(14);
+    for (const [args] of teamUpsert.mock.calls) {
+      const expected = byId.get(args.where.id ?? -1)?.conference;
+      expect(expected).toBeDefined();
+      expect(args.create.conference).toBe(expected);
+      expect(args.update.conference).toBe(expected);
+    }
   });
 
   it("passe les bons arguments create et update pour un match", async () => {
@@ -225,5 +259,83 @@ describe("getGamesOfDay", () => {
     gameFindMany.mockRejectedValueOnce(new Error("connexion perdue"));
 
     await expect(getGamesOfDay(db, "2026-11-22")).rejects.toThrow("connexion perdue");
+  });
+});
+
+describe("getFinalGamesOfSeason", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  // Seule l'horloge (Date) est simulée : les promesses de findMany se résolvent normalement.
+  function setNow(iso: string) {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(iso));
+  }
+
+  it("demande les matchs terminés de la saison régulière, de minuit (Paris) au début du play-in", async () => {
+    setNow("2026-11-28T12:00:00.000Z");
+    const { db, gameFindMany } = createFakeReadDb([]);
+
+    await getFinalGamesOfSeason(db);
+
+    // Premier jour : 2026-10-20, encore à l'heure d'été (UTC+2) → minuit à Paris = 22:00 UTC la veille.
+    // Dernier jour : 2027-04-11 à New York ; on garde le 12 à Paris → fin à minuit le 13 (22:00 UTC le 12).
+    expect(gameFindMany).toHaveBeenCalledTimes(1);
+    expect(gameFindMany).toHaveBeenCalledWith({
+      where: {
+        startsAt: {
+          gte: new Date("2026-10-19T22:00:00.000Z"),
+          lt: new Date("2027-04-12T22:00:00.000Z"),
+        },
+        status: "final",
+      },
+      include: { homeTeam: true, visitorTeam: true },
+      orderBy: { startsAt: "asc" },
+    });
+  });
+
+  it.each([
+    { label: "le soir du 1er jour de la saison, heure de Paris", now: "2026-10-20T21:59:59.000Z" },
+    { label: "un soir où Paris est déjà le lendemain", now: "2026-12-31T23:30:00.000Z" },
+    { label: "en fin de saison régulière", now: "2027-04-11T18:00:00.000Z" },
+  ])("garde les mêmes bornes de saison $label", async ({ now }) => {
+    setNow(now);
+    const { db, gameFindMany } = createFakeReadDb([]);
+
+    await getFinalGamesOfSeason(db);
+
+    const [args] = gameFindMany.mock.calls[0] ?? [];
+    expect(args?.where).toEqual({
+      startsAt: {
+        gte: new Date("2026-10-19T22:00:00.000Z"),
+        lt: new Date("2027-04-12T22:00:00.000Z"),
+      },
+      status: "final",
+    });
+  });
+
+  it("renvoie tels quels les matchs renvoyés par la base", async () => {
+    setNow("2026-11-28T12:00:00.000Z");
+    const { db } = createFakeReadDb(games);
+
+    const result = await getFinalGamesOfSeason(db);
+
+    expect(result).toBe(games);
+  });
+
+  it("renvoie un tableau vide quand aucun match n'est terminé", async () => {
+    setNow("2026-10-20T08:00:00.000Z");
+    const { db } = createFakeReadDb([]);
+
+    await expect(getFinalGamesOfSeason(db)).resolves.toEqual([]);
+  });
+
+  it("propage l'erreur si la base échoue", async () => {
+    setNow("2026-11-28T12:00:00.000Z");
+    const { db, gameFindMany } = createFakeReadDb([]);
+    gameFindMany.mockRejectedValueOnce(new Error("connexion perdue"));
+
+    await expect(getFinalGamesOfSeason(db)).rejects.toThrow("connexion perdue");
   });
 });

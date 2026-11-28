@@ -63,8 +63,9 @@ export function isValidDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
-// Premier jour de la saison NBA 2026-2027 : à mettre à jour à chaque nouvelle saison.
-const SEASON_START = "2026-10-20";
+// Saison régulière NBA 2026-2027 (dates de New York) : à mettre à jour à chaque nouvelle saison.
+export const SEASON_START = "2026-10-20";
+export const REGULAR_SEASON_END = "2027-04-11";
 // La collecte automatique récupère les matchs jusqu'à 7 jours à l'avance.
 const DAYS_AHEAD = 7;
 

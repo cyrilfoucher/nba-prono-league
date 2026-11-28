@@ -4,6 +4,7 @@ const teamSchema = z.object({
   id: z.number(),
   full_name: z.string(),
   abbreviation: z.string(),
+  conference: z.enum(["East", "West"]),
 });
 
 const gameSchema = z.object({

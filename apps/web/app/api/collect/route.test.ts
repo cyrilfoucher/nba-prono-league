@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "./route";
 
-// Seul l'appel à l'API est simulé : getCollectDates et isValidDate gardent leur vraie implémentation.
+// Seul l'appel à l'API est simulé : les fonctions de dates gardent leur vraie implémentation.
 vi.mock("@repo/core", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@repo/core")>()),
   fetchGamesByDates: vi.fn(),
@@ -32,10 +32,15 @@ const atlDet: Game = {
   id: 21718162,
   startsAt: new Date("2026-11-22T20:30:00.000Z"),
   status: "final",
-  homeTeam: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL" },
-  visitorTeam: { id: 9, name: "Detroit Pistons", abbreviation: "DET" },
+  homeTeam: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL", conference: "East" },
+  visitorTeam: { id: 9, name: "Detroit Pistons", abbreviation: "DET", conference: "East" },
   homeScore: 107,
   visitorScore: 97,
+};
+
+const PERIOD_ERROR = {
+  error:
+    "Période invalide : du et au attendus au format AAAA-MM-JJ, dans la saison en cours, du avant au",
 };
 
 function collectRequest(query = "", authorization: string | null = `Bearer ${CRON_SECRET}`) {
@@ -179,6 +184,139 @@ describe("GET /api/collect", () => {
       expect(response.status).toBe(200);
       expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(COLLECT_DATES, API_KEY);
       await expect(response.json()).resolves.toEqual({ dates: COLLECT_DATES, saved: 1 });
+    });
+  });
+
+  describe("paramètres du et au", () => {
+    // Midi UTC le 27 novembre 2026 = 13 h à Paris : aujourd'hui est le 2026-11-27.
+    // La saison commence le 2026-10-20 ; le dernier jour disponible est aujourd'hui + 7 = 2026-12-04.
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-11-27T12:00:00Z"));
+    });
+
+    it("récupère et enregistre tous les jours de la période, bornes incluses", async () => {
+      const period = ["2026-11-20", "2026-11-21", "2026-11-22", "2026-11-23"];
+
+      const response = await GET(collectRequest("?du=2026-11-20&au=2026-11-23"));
+
+      expect(response.status).toBe(200);
+      expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(period, API_KEY);
+      expect(saveGames).toHaveBeenCalledExactlyOnceWith(prisma, [atlDet]);
+      await expect(response.json()).resolves.toEqual({ dates: period, saved: 1 });
+    });
+
+    it("accepte une période d'un seul jour", async () => {
+      const response = await GET(collectRequest("?du=2026-11-22&au=2026-11-22"));
+
+      expect(response.status).toBe(200);
+      expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(["2026-11-22"], API_KEY);
+    });
+
+    it("accepte une période de 31 jours qui part du début de la saison et passe au mois suivant", async () => {
+      const response = await GET(collectRequest("?du=2026-10-20&au=2026-11-19"));
+
+      expect(response.status).toBe(200);
+      const [dates] = vi.mocked(fetchGamesByDates).mock.calls[0] ?? [];
+      expect(dates).toHaveLength(31);
+      expect(dates?.[0]).toBe("2026-10-20");
+      expect(dates).toContain("2026-10-31");
+      expect(dates).toContain("2026-11-01");
+      expect(dates?.at(-1)).toBe("2026-11-19");
+    });
+
+    it("renvoie 400 pour une période de plus de 31 jours, sans appeler l'API", async () => {
+      const response = await GET(collectRequest("?du=2026-10-20&au=2026-11-20"));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual({
+        error: "Période trop longue : 31 jours au plus",
+      });
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
+    });
+
+    it("se base sur le jour de Paris : à 23 h 30 UTC, Paris est déjà le lendemain", async () => {
+      // 2026-11-27T23:30Z = 00:30 le 28 à Paris : le dernier jour disponible devient le 2026-12-05.
+      vi.setSystemTime(new Date("2026-11-27T23:30:00Z"));
+
+      const response = await GET(collectRequest("?du=2026-12-05&au=2026-12-05"));
+
+      expect(response.status).toBe(200);
+      expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(["2026-12-05"], API_KEY);
+    });
+
+    it.each([
+      ["du sans au", "?du=2026-11-20"],
+      ["au sans du", "?au=2026-11-23"],
+      ["du vide", "?du=&au=2026-11-23"],
+      ["au vide", "?du=2026-11-20&au="],
+    ])("renvoie 400 avec %s", async (_label, query) => {
+      const response = await GET(collectRequest(query));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual(PERIOD_ERROR);
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
+      expect(saveGames).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["du la veille du début de saison", "?du=2026-10-19&au=2026-11-23"],
+      ["au le lendemain du dernier jour disponible", "?du=2026-11-20&au=2026-12-05"],
+      ["une période de la saison précédente", "?du=2026-03-01&au=2026-03-05"],
+      ["une période lointaine dans le futur", "?du=2042-01-01&au=2042-01-02"],
+    ])("renvoie 400 pour %s", async (_label, query) => {
+      const response = await GET(collectRequest(query));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual(PERIOD_ERROR);
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ["du au mauvais format", "?du=20-11-2026&au=2026-11-23"],
+      ["au inexistant", "?du=2026-11-20&au=2026-11-31"],
+      ["du avec une heure", `?du=${encodeURIComponent("2026-11-20T00:00:00Z")}&au=2026-11-23`],
+    ])("renvoie 400 pour %s", async (_label, query) => {
+      const response = await GET(collectRequest(query));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual(PERIOD_ERROR);
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
+    });
+
+    it("renvoie 400 si du est après au", async () => {
+      const response = await GET(collectRequest("?du=2026-11-23&au=2026-11-20"));
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toEqual(PERIOD_ERROR);
+      expect(fetchGamesByDates).not.toHaveBeenCalled();
+    });
+
+    it("utilise la période plutôt que le paramètre date quand les deux sont fournis", async () => {
+      const response = await GET(collectRequest("?date=2026-11-25&du=2026-11-20&au=2026-11-21"));
+
+      expect(response.status).toBe(200);
+      expect(fetchGamesByDates).toHaveBeenCalledExactlyOnceWith(
+        ["2026-11-20", "2026-11-21"],
+        API_KEY,
+      );
+    });
+
+    it("vérifie l'authentification avant de valider la période", async () => {
+      const response = await GET(collectRequest("?du=2026-11-23&au=2026-11-20", null));
+
+      expect(response.status).toBe(401);
+    });
+
+    it("renvoie 502 si le quota BALLDONTLIE est dépassé pendant un rattrapage", async () => {
+      vi.mocked(fetchGamesByDates).mockRejectedValue(
+        new Error("Quota BALLDONTLIE dépassé, réessayer plus tard"),
+      );
+
+      const response = await GET(collectRequest("?du=2026-11-20&au=2026-11-23"));
+
+      expect(response.status).toBe(502);
+      expect(saveGames).not.toHaveBeenCalled();
     });
   });
 

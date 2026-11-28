@@ -129,7 +129,10 @@ Avant de dire qu'une tâche est finie : `pnpm format`, `pnpm lint`, `pnpm check-
 ## Données
 
 - Uniquement des **données réelles** de BALLDONTLIE : calendrier, équipes, scores.
-  Pas de matchs ni de résultats inventés.
+  Pas de matchs ni de résultats inventés dans l'appli, ni dans la base.
+- Exception pour les tests (ADR 0005) : partir des fixtures réelles, et ne modifier
+  que les scores, statuts ou affiches nécessaires à un cas limite (égalité, écart
+  négatif…). Le commentaire du test dit ce qui a été modifié.
 - Pour les tests et le développement hors ligne : des fixtures, c'est-à-dire de vraies
   réponses de BALLDONTLIE enregistrées dans des fichiers.
 - Plan gratuit BALLDONTLIE : **5 requêtes par minute**. Ne lance jamais d'appels en

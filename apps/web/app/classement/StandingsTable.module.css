@@ -1,0 +1,138 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
+.marker {
+  width: 4px;
+  height: 1.1em;
+  border-radius: var(--radius-full);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: var(--space-2) var(--space-1);
+  vertical-align: middle;
+}
+
+.table thead th {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.table tbody tr + tr {
+  border-top: 1px solid var(--color-border);
+}
+
+/* Fin d'une zone de qualification : trait plus marqué sous la ligne. */
+.table tbody tr.zoneEnd {
+  border-bottom: 2px solid var(--color-text-muted);
+}
+
+.legend {
+  padding: var(--space-3) var(--space-1) 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.table thead [title] {
+  cursor: help;
+}
+
+.number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Espace entre les colonnes chiffrées, pour ne pas coller « 6 » et « .667 ». */
+.table .number {
+  padding-left: var(--space-4);
+}
+
+.wins {
+  color: var(--color-win);
+}
+
+.losses {
+  color: var(--color-loss);
+}
+
+.gamesBehind {
+  font-weight: var(--font-weight-bold);
+}
+
+/* max-width: 0 laisse la colonne prendre la place restante sans élargir le tableau. */
+.team {
+  width: 100%;
+  max-width: 0;
+  text-align: left;
+}
+
+.teamContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+}
+
+.empty {
+  padding: var(--space-6) var(--space-2);
+  text-align: center;
+  font-size: var(--font-size-md);
+  color: var(--color-text-muted);
+}
+
+.shortName {
+  display: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Petits écrans : le nom court remplace le nom complet (toujours lu par les lecteurs d'écran). */
+@media (max-width: 479px) {
+  .name {
+    display: none;
+  }
+
+  .shortName {
+    display: block;
+  }
+
+  .teamContent {
+    gap: var(--space-2);
+  }
+
+  .table .number {
+    padding-left: var(--space-2);
+  }
+}

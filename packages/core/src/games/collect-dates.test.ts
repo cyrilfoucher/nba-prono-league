@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getCollectDates, getCurrentNewYorkDay } from "./collect-dates";
+import { getCollectDates, getCurrentNewYorkDay, getDatesBetween } from "./collect-dates";
 import { shiftDay } from "./day";
 
 describe("getCurrentNewYorkDay", () => {
@@ -177,5 +177,77 @@ describe("getCollectDates", () => {
     expect(dates[0]).toBe("2026-11-21");
     expect(dates[1]).toBe("2026-11-22");
     expect(dates[8]).toBe("2026-11-29");
+  });
+});
+
+describe("getDatesBetween", () => {
+  it("renvoie une seule date quand first et last sont égaux", () => {
+    expect(getDatesBetween("2026-11-22", "2026-11-22")).toEqual(["2026-11-22"]);
+  });
+
+  it.each([
+    ["2026-11-23", "2026-11-22"],
+    ["2026-12-01", "2026-11-30"],
+    ["2027-01-01", "2026-12-31"],
+  ])("renvoie un tableau vide quand first (%s) est après last (%s)", (first, last) => {
+    expect(getDatesBetween(first, last)).toEqual([]);
+  });
+
+  it("renvoie tous les jours entre les deux bornes, incluses, dans l'ordre", () => {
+    expect(getDatesBetween("2026-11-20", "2026-11-24")).toEqual([
+      "2026-11-20",
+      "2026-11-21",
+      "2026-11-22",
+      "2026-11-23",
+      "2026-11-24",
+    ]);
+  });
+
+  it("passe d'un mois à l'autre", () => {
+    expect(getDatesBetween("2026-11-29", "2026-12-02")).toEqual([
+      "2026-11-29",
+      "2026-11-30",
+      "2026-12-01",
+      "2026-12-02",
+    ]);
+  });
+
+  it("passe d'une année à l'autre", () => {
+    expect(getDatesBetween("2026-12-30", "2027-01-02")).toEqual([
+      "2026-12-30",
+      "2026-12-31",
+      "2027-01-01",
+      "2027-01-02",
+    ]);
+  });
+
+  it("inclut le 29 février d'une année bissextile", () => {
+    expect(getDatesBetween("2028-02-28", "2028-03-01")).toEqual([
+      "2028-02-28",
+      "2028-02-29",
+      "2028-03-01",
+    ]);
+  });
+
+  it.each([
+    // Passages à l'heure d'été et d'hiver, à Paris comme à New York.
+    ["2026-03-07", "2026-03-09"],
+    ["2026-03-28", "2026-03-30"],
+    ["2026-10-24", "2026-10-26"],
+    ["2026-10-31", "2026-11-02"],
+  ])("ne saute ni ne double aucun jour autour d'un changement d'heure (%s → %s)", (first, last) => {
+    expect(getDatesBetween(first, last)).toEqual([first, shiftDay(first, 1), last]);
+  });
+
+  it("couvre une longue période (174 jours) sans trou ni doublon", () => {
+    const dates = getDatesBetween("2026-10-20", "2027-04-11");
+
+    expect(dates).toHaveLength(174);
+    expect(dates[0]).toBe("2026-10-20");
+    expect(dates.at(-1)).toBe("2027-04-11");
+    expect(new Set(dates).size).toBe(dates.length);
+    for (let i = 1; i < dates.length; i++) {
+      expect(dates[i]).toBe(shiftDay(dates[i - 1] ?? "", 1));
+    }
   });
 });

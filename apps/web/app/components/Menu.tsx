@@ -17,7 +17,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { label: "Matchs", Icon: GamesIcon, href: "/" },
   { label: "Mes ligues", Icon: LeaguesIcon },
-  { label: "Classements", Icon: RankingsIcon },
+  { label: "Classement NBA", Icon: RankingsIcon, href: "/classement" },
   { label: "Mes pronos", Icon: PicksIcon },
   { label: "Profil", Icon: ProfileIcon },
 ];

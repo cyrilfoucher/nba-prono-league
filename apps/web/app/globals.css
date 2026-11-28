@@ -13,6 +13,12 @@
   --color-live: #dc2626;
   --color-focus: #2563eb;
   --color-team-fallback: #6b7280;
+  /* Couleurs des conférences, reprises des logos de la NBA : bleu à l'Est, rouge à l'Ouest. */
+  --color-east: #1d428a;
+  --color-west: #c8102e;
+  /* Victoires et défaites dans le classement (contraste suffisant sur la surface). */
+  --color-win: #15803d;
+  --color-loss: #b91c1c;
   --color-header-background: rgb(10 10 12 / 72%);
   --color-header-text: #ffffff;
   --color-menu-background: #0a0a0c;
@@ -78,6 +84,10 @@
     --color-live: #f87171;
     --color-focus: #93c5fd;
     --color-team-fallback: #4b5563;
+    --color-east: #3b6fd6;
+    --color-west: #e5384f;
+    --color-win: #4ade80;
+    --color-loss: #f87171;
     --shadow-card: 0 1px 2px rgb(0 0 0 / 40%);
   }
 

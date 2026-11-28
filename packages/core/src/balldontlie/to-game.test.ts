@@ -17,6 +17,9 @@ function gameById(id: number): BallDontLieGame {
 
 const atlDet = gameById(21718162);
 const chiDen = gameById(21718166);
+const miaOkc = gameById(21718163);
+const utaDal = gameById(21718167);
+const gswBos = gameById(21718170);
 
 describe("toGame", () => {
   it("convertit un match terminé", () => {
@@ -24,11 +27,31 @@ describe("toGame", () => {
       id: 21718162,
       startsAt: new Date("2026-11-22T20:30:00.000Z"),
       status: "final",
-      homeTeam: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL" },
-      visitorTeam: { id: 9, name: "Detroit Pistons", abbreviation: "DET" },
+      homeTeam: { id: 1, name: "Atlanta Hawks", abbreviation: "ATL", conference: "East" },
+      visitorTeam: { id: 9, name: "Detroit Pistons", abbreviation: "DET", conference: "East" },
       homeScore: 107,
       visitorScore: 97,
     });
+  });
+
+  it.each([
+    ["MIA-OKC, Est à domicile contre Ouest", miaOkc, "East", "West"],
+    ["GSW-BOS, Ouest à domicile contre Est", gswBos, "West", "East"],
+    ["UTA-DAL, deux équipes de l'Ouest", utaDal, "West", "West"],
+  ] as const)("copie la conférence de chaque équipe (%s)", (_label, apiGame, home, visitor) => {
+    const game = toGame(apiGame);
+
+    expect(game.homeTeam.conference).toBe(home);
+    expect(game.visitorTeam.conference).toBe(visitor);
+  });
+
+  it("copie la conférence telle que l'API la renvoie pour les 14 équipes de la fixture", () => {
+    for (const apiGame of fixture.data) {
+      const game = toGame(apiGame);
+
+      expect(game.homeTeam.conference).toBe(apiGame.home_team.conference);
+      expect(game.visitorTeam.conference).toBe(apiGame.visitor_team.conference);
+    }
   });
 
   it("garde le score final après prolongation", () => {
